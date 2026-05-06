@@ -15,8 +15,11 @@ Students and professionals deal with large volumes of notes from lectures, meeti
 CogniNotes provides an AI-powered multi-agent system that:
 
 Automatically summarizes notes
+
 Extracts important keywords
+
 Answers user queries in real-time
+
 Supports multiple input formats
 
 ⚙️ Core Features
@@ -46,35 +49,53 @@ Input → Extract API → Process API → Orchestrator → AI Models → Databas
 Workflow:
 
 User inputs text / PDF / URL
+
 Content is extracted and cleaned
+
 Request sent to processing API
+
 Orchestrator routes task to AI modules
+
 AI models generate output
+
 Results stored and displayed dynamically
 
 🤖 AI Models Used
 
 BART (facebook/bart-large-cnn)
+
 Task: Abstractive Text Summarization
+
 TF-IDF (Scikit-learn)
+
 Task: Keyword Extraction
+
 DistilBERT (distilbert-base-uncased-distilled-squad)
+
 Task: Question Answering
 
 🛠️ Tech Stack
 
 Backend: Python, Django, Django REST Framework
+
 Frontend: HTML, CSS, JavaScript (Django Templates)
+
 AI/NLP: HuggingFace Transformers, Scikit-learn
+
 Database: SQLite
+
 Other Tools: BeautifulSoup, PyPDF2
 
 ⚡ Key Highlights
 
 Real-time AI processing
+
 Multi-agent architecture
+
 Role-based access (Teacher & Student)
+
 Automatic data persistence
+
 Lightweight and responsive UI
 
 🎯 Conclusion
