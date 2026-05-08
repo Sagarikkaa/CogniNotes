@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}LearnLoop — Teacher Dashboard{% endblock %}
+{% block meta_description %}Teacher Dashboard — Manage notes, view AI summaries, and curate content for your students.{% endblock %}
+{% block body_class %}page-dashboard{% endblock %}
+
+{% block body %}
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+        <div class="sidebar-logo">
+            <svg width="36" height="36" viewBox="0 0 48 48" fill="none">
+                <rect width="48" height="48" rx="14" fill="url(#sb-grad)"/>
+                <path d="M14 15h20M14 24h14M14 33h17" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="36" cy="33" r="5" fill="#4AE183" opacity="0.95"/>
+                <path d="M34.5 33l1.5 1.5 3-3" stroke="#001A42" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <defs>
+                    <linearGradient id="sb-grad" x1="0" y1="0" x2="48" y2="48">
+                        <stop stop-color="#004497"/>
+                        <stop offset="1" stop-color="#005BC5"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <span class="sidebar-brand">LearnLoop</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" id="navDashboard">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" id="navNotes">
+                <span class="material-symbols-outlined">description</span>
+                <span>All Notes</span>
+            </a>
+            <a href="#" class="nav-item" id="navStudents">
+                <span class="material-symbols-outlined">groups</span>
+                <span>Students</span>
+            </a>
+            <a href="#" class="nav-item" id="navAnalytics">
+                <span class="material-symbols-outlined">analytics</span>
+                <span>Analytics</span>
+            </a>
+        </nav>
+    </div>
+    <div class="sidebar-bottom">
+        <div class="sidebar-user">
+            <div class="user-avatar">
+                <span class="material-symbols-outlined">person</span>
+            </div>
+            <div class="user-info">
+                <span class="user-name">{{ user.get_full_name|default:user.username|default:"Teacher" }}</span>
+                <span class="user-role">Teacher</span>
+            </div>
+        </div>
+        <a href="{% url 'logout' %}" class="nav-item nav-item--logout" id="logoutBtn">
+            <span class="material-symbols-outlined">logout</span>
+            <span>Logout</span>
+        </a>
+    </div>
+</aside>
+
+<!-- Main Content -->
+<main class="dashboard-main" id="dashboardMain">
+    <!-- Top Bar -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="topbar-menu-btn" id="menuToggle" onclick="document.getElementById('sidebar').classList.toggle('open')">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+            <div>
+                <h1 class="topbar-title">Welcome back, {{ user.get_full_name|default:user.username|default:"Teacher" }} 👋</h1>
+                <p class="topbar-sub">Here's what's happening with your notes today.</p>
+            </div>
+        </div>
+        <div class="topbar-actions">
+            <button class="btn-action btn-action--primary" id="createNoteBtn" onclick="document.getElementById('createNoteModal').classList.add('active')">
+                <span class="material-symbols-outlined">add</span>
+                Create Note
+            </button>
+        </div>
+    </header>
+
+    <!-- Stats Row -->
+    <section class="stats-row" id="statsSection">
+        <div class="stat-card">
+            <div class="stat-icon stat-icon--notes">
+                <span class="material-symbols-outlined">description</span>
+            </div>
+            <div class="stat-content">
+                <span class="stat-value">{{ notes_count|default:"0" }}</span>
+                <span class="stat-label">Total Notes</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon stat-icon--summaries">
+                <span class="material-symbols-outlined">auto_awesome</span>
+            </div>
+            <div class="stat-content">
+                <span class="stat-value">{{ summaries_count|default:"0" }}</span>
+                <span class="stat-label">Summaries</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon stat-icon--students">
+                <span class="material-symbols-outlined">groups</span>
+            </div>
+            <div class="stat-content">
+                <span class="stat-value">{{ students_count|default:"0" }}</span>
+                <span class="stat-label">Students</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon stat-icon--queries">
+                <span class="material-symbols-outlined">help</span>
+            </div>
+            <div class="stat-content">
+                <span class="stat-value">{{ queries_count|default:"0" }}</span>
+                <span class="stat-label">AI Queries</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Notes Table -->
+    <section class="notes-section" id="notesSection">
+        <div class="section-header">
+            <h2 class="section-title">Recent Notes</h2>
+            <div class="section-actions">
+                <div class="search-field" id="searchField">
+                    <span class="material-symbols-outlined">search</span>
+                    <input type="text" placeholder="Search notes..." id="searchInput">
+                </div>
+            </div>
+        </div>
+        <div class="notes-list" id="notesList">
+            {% for note in notes %}
+            <div class="note-row" id="note-{{ note.id }}">
+                <div class="note-row-content">
+                    <h3 class="note-row-title">{{ note.content|truncatechars:80 }}</h3>
+                    <p class="note-row-meta">
+                        <span class="material-symbols-outlined" style="font-size: 14px;">schedule</span>
+                        {{ note.created_at|timesince }} ago
+                        {% if note.summary %}
+                        <span class="meta-chip meta-chip--summary">Summarized</span>
+                        {% endif %}
+                        {% if note.keywords %}
+                        <span class="meta-chip meta-chip--keywords">Keywords</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="note-row-actions">
+                    <button class="icon-btn" title="View" onclick="viewNote({{ note.id }})">
+                        <span class="material-symbols-outlined">visibility</span>
+                    </button>
+                    <button class="icon-btn" title="Summarize" onclick="summarizeNote({{ note.id }})">
+                        <span class="material-symbols-outlined">auto_awesome</span>
+                    </button>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <span class="material-symbols-outlined empty-icon">note_add</span>
+                <h3>No notes yet</h3>
+                <p>Create your first note to get started with AI-powered summaries.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</main>
+
+<!-- Create Note Modal -->
+<div class="modal-overlay" id="createNoteModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h2>Create New Note</h2>
+            <button class="icon-btn" onclick="document.getElementById('createNoteModal').classList.remove('active')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <textarea id="modalNoteInput" placeholder="Paste or type your notes here..." rows="10"></textarea>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-action btn-action--ghost" onclick="document.getElementById('createNoteModal').classList.remove('active')">Cancel</button>
+            <button class="btn-action btn-action--primary" id="saveNoteBtn" onclick="saveAndSummarize()">
+                <span class="material-symbols-outlined">auto_awesome</span>
+                Save & Summarize
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="{% static 'script.js' %}"></script>
+<script>
+// Teacher dashboard-specific functions
+function saveAndSummarize() {
+    const text = document.getElementById('modalNoteInput').value.trim();
+    if (!text) {
+        showToast('Please enter some note text first.', 'error');
+        return;
+    }
+    document.getElementById('createNoteModal').classList.remove('active');
+    // Use the existing note input and trigger summarize
+    document.getElementById('noteInput').value = text;
+    handleAction('summarize');
+}
+
+function viewNote(id) {
+    const noteEl = document.getElementById('note-' + id);
+    if (noteEl) {
+        noteEl.classList.toggle('expanded');
+    }
+}
+
+function summarizeNote(id) {
+    const noteEl = document.getElementById('note-' + id);
+    if (noteEl) {
+        const text = noteEl.querySelector('.note-row-title').textContent;
+        document.getElementById('noteInput').value = text;
+        handleAction('summarize');
+    }
+}
+
+// Search filter
+const searchInput = document.getElementById('searchInput');
+if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        document.querySelectorAll('.note-row').forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
+    });
+}
+</script>
+{% endblock %}

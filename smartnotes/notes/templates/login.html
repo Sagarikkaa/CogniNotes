@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}LearnLoop — Login{% endblock %}
+{% block meta_description %}Log in to LearnLoop — AI-powered intelligent note synthesis for students and teachers.{% endblock %}
+{% block body_class %}page-login{% endblock %}
+
+{% block body %}
+<!-- Ambient Background -->
+<div class="login-ambient">
+    <div class="ambient-orb ambient-orb--1"></div>
+    <div class="ambient-orb ambient-orb--2"></div>
+    <div class="ambient-orb ambient-orb--3"></div>
+</div>
+
+<main class="login-wrapper">
+    <!-- Left: Branding Panel -->
+    <section class="login-brand" id="loginBrand">
+        <div class="brand-content">
+            <div class="brand-logo">
+                <div class="logo-mark">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                        <rect width="48" height="48" rx="14" fill="url(#ll-grad)"/>
+                        <path d="M14 15h20M14 24h14M14 33h17" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="36" cy="33" r="5" fill="#4AE183" opacity="0.95"/>
+                        <path d="M34.5 33l1.5 1.5 3-3" stroke="#001A42" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <defs>
+                            <linearGradient id="ll-grad" x1="0" y1="0" x2="48" y2="48">
+                                <stop stop-color="#004497"/>
+                                <stop offset="1" stop-color="#005BC5"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <span class="logo-text">LearnLoop</span>
+            </div>
+            <h1 class="brand-headline">The Intelligent<br>Synthesis.</h1>
+            <p class="brand-tagline">Effortlessly summarize your notes with AI precision. Powered by BART, DistilBERT, and TF-IDF multi-agent architecture.</p>
+            <div class="brand-features">
+                <div class="feature-pill">
+                    <span class="material-symbols-outlined">auto_awesome</span>
+                    AI Summarization
+                </div>
+                <div class="feature-pill">
+                    <span class="material-symbols-outlined">search</span>
+                    Smart Q&A
+                </div>
+                <div class="feature-pill">
+                    <span class="material-symbols-outlined">key</span>
+                    Keyword Extraction
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Right: Login Forms -->
+    <section class="login-forms" id="loginForms">
+        <!-- Student Login Card -->
+        <div class="login-card" id="studentLoginCard">
+            <div class="card-accent card-accent--student"></div>
+            <div class="login-card-inner">
+                <div class="card-icon-row">
+                    <span class="material-symbols-outlined card-role-icon">school</span>
+                    <span class="role-chip role-chip--student">Student</span>
+                </div>
+                <h2 class="login-card-title">Student Login</h2>
+                <p class="login-card-sub">Access your study summaries</p>
+
+                <form method="post" action="{% url 'login' %}" class="login-form" id="studentForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="role" value="student">
+                    <div class="form-field">
+                        <label for="studentUsername">Username</label>
+                        <input type="text" id="studentUsername" name="username" placeholder="Enter your username" required autocomplete="username">
+                    </div>
+                    <div class="form-field">
+                        <label for="studentPassword">Password</label>
+                        <input type="password" id="studentPassword" name="password" placeholder="Enter your password" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn-login btn-login--primary" id="studentLoginBtn">
+                        <span>Sign In</span>
+                        <span class="material-symbols-outlined">arrow_forward</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Teacher Login Card -->
+        <div class="login-card" id="teacherLoginCard">
+            <div class="card-accent card-accent--teacher"></div>
+            <div class="login-card-inner">
+                <div class="card-icon-row">
+                    <span class="material-symbols-outlined card-role-icon">workspace_premium</span>
+                    <span class="role-chip role-chip--teacher">Teacher</span>
+                </div>
+                <h2 class="login-card-title">Teacher Login</h2>
+                <p class="login-card-sub">Manage curated content</p>
+
+                <form method="post" action="{% url 'login' %}" class="login-form" id="teacherForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="role" value="teacher">
+                    <div class="form-field">
+                        <label for="teacherUsername">Username</label>
+                        <input type="text" id="teacherUsername" name="username" placeholder="Enter your username" required autocomplete="username">
+                    </div>
+                    <div class="form-field">
+                        <label for="teacherPassword">Password</label>
+                        <input type="password" id="teacherPassword" name="password" placeholder="Enter your password" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn-login btn-login--secondary" id="teacherLoginBtn">
+                        <span>Sign In</span>
+                        <span class="material-symbols-outlined">arrow_forward</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {% if error %}
+        <div class="login-error" id="loginError">
+            <span class="material-symbols-outlined">error</span>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <p class="login-footer-text">
+            New to LearnLoop? Contact your administrator for access.
+        </p>
+    </section>
+</main>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}LearnLoop — Redirecting...{% endblock %}
+{% block body_class %}page-login{% endblock %}
+
+{% block body %}
+<script>window.location.href = '/login/';</script>
+<p style="text-align:center; padding: 2rem; font-family: Inter, sans-serif; color: #424753;">Redirecting to login...</p>
+{% endblock %}

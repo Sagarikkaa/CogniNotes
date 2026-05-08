@@ -1,0 +1,351 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}LearnLoop — AI Study Workspace{% endblock %}
+{% block meta_description %}Student AI Workspace — Summarize notes, extract keywords, and ask questions with AI-powered intelligence.{% endblock %}
+{% block body_class %}page-workspace{% endblock %}
+
+{% block body %}
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+        <div class="sidebar-logo">
+            <svg width="36" height="36" viewBox="0 0 48 48" fill="none">
+                <rect width="48" height="48" rx="14" fill="url(#sw-grad)"/>
+                <path d="M14 15h20M14 24h14M14 33h17" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="36" cy="33" r="5" fill="#4AE183" opacity="0.95"/>
+                <path d="M34.5 33l1.5 1.5 3-3" stroke="#001A42" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <defs>
+                    <linearGradient id="sw-grad" x1="0" y1="0" x2="48" y2="48">
+                        <stop stop-color="#004497"/>
+                        <stop offset="1" stop-color="#005BC5"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <span class="sidebar-brand">LearnLoop</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" id="navWorkspace">
+                <span class="material-symbols-outlined">edit_note</span>
+                <span>Workspace</span>
+            </a>
+            <a href="#" class="nav-item" id="navMyNotes">
+                <span class="material-symbols-outlined">folder_open</span>
+                <span>My Notes</span>
+            </a>
+            <a href="#" class="nav-item" id="navTeacherNotes">
+                <span class="material-symbols-outlined">school</span>
+                <span>Teacher Notes</span>
+            </a>
+            <a href="#" class="nav-item" id="navHistory">
+                <span class="material-symbols-outlined">history</span>
+                <span>History</span>
+            </a>
+        </nav>
+    </div>
+    <div class="sidebar-bottom">
+        <div class="sidebar-user">
+            <div class="user-avatar user-avatar--student">
+                <span class="material-symbols-outlined">person</span>
+            </div>
+            <div class="user-info">
+                <span class="user-name">{{ user.get_full_name|default:user.username|default:"Student" }}</span>
+                <span class="user-role">Student</span>
+            </div>
+        </div>
+        <a href="{% url 'logout' %}" class="nav-item nav-item--logout" id="logoutBtnStudent">
+            <span class="material-symbols-outlined">logout</span>
+            <span>Logout</span>
+        </a>
+    </div>
+</aside>
+
+<!-- Main Content -->
+<main class="dashboard-main" id="workspaceMain">
+    <!-- Top Bar -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="topbar-menu-btn" id="menuToggleStudent" onclick="document.getElementById('sidebar').classList.toggle('open')">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+            <div>
+                <h1 class="topbar-title">AI Study Workspace</h1>
+                <p class="topbar-sub">Paste your notes and let AI do the heavy lifting.</p>
+            </div>
+        </div>
+        <div class="topbar-actions">
+            <div class="agent-badges">
+                <span class="agent-badge agent-badge--bart" title="BART Summarization">
+                    <span class="material-symbols-outlined">auto_awesome</span> BART
+                </span>
+                <span class="agent-badge agent-badge--distil" title="DistilBERT Q&A">
+                    <span class="material-symbols-outlined">psychology</span> DistilBERT
+                </span>
+                <span class="agent-badge agent-badge--tfidf" title="TF-IDF Keywords">
+                    <span class="material-symbols-outlined">key</span> TF-IDF
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Workspace Grid -->
+    <div class="workspace-grid">
+        <!-- Left Column: Input -->
+        <div class="workspace-col workspace-col--input">
+            <!-- Note Input Card -->
+            <section class="ws-card" id="inputSection">
+                <div class="ws-card-header">
+                    <h2 class="ws-card-title">
+                        <span class="material-symbols-outlined">edit_note</span>
+                        Your Notes
+                    </h2>
+                    <span class="char-counter" id="charCount">0 chars</span>
+                </div>
+                
+                <!-- Input Tabs -->
+                <div class="input-tabs">
+                    <button class="tab-btn active" onclick="switchTab('text')">Text</button>
+                    <button class="tab-btn" onclick="switchTab('pdf')">Upload PDF</button>
+                    <button class="tab-btn" onclick="switchTab('url')">Link URL</button>
+                </div>
+                
+                <!-- PDF Upload Area -->
+                <div id="pdfInputArea" style="display:none; padding:16px; background:var(--surface-container-low); border-radius:8px; margin-bottom:16px;">
+                    <input type="file" id="pdfFileInput" accept="application/pdf" style="margin-bottom:8px; width:100%;">
+                    <button class="btn-action btn-action--tertiary" onclick="extractPdf()" id="btnExtractPdf">Extract from PDF</button>
+                </div>
+                
+                <!-- URL Input Area -->
+                <div id="urlInputArea" style="display:none; padding:16px; background:var(--surface-container-low); border-radius:8px; margin-bottom:16px;">
+                    <input type="url" id="urlInput" placeholder="https://example.com/article" class="ws-input" style="margin-bottom:8px; width:100%;">
+                    <button class="btn-action btn-action--tertiary" onclick="extractUrl()" id="btnExtractUrl">Extract from Link</button>
+                </div>
+
+                <textarea
+                    id="noteInput"
+                    class="ws-textarea"
+                    placeholder="Paste or type your notes here...&#10;&#10;The AI agents will analyze your text to generate summaries, extract keywords, and answer your questions."
+                    rows="12"
+                    oninput="updateCharCount()"
+                ></textarea>
+                <div class="ws-actions">
+                    <button class="btn-action btn-action--primary" id="btnSummarize" onclick="handleAction('summarize')">
+                        <span class="material-symbols-outlined">auto_awesome</span>
+                        Summarize
+                    </button>
+                    <button class="btn-action btn-action--secondary" id="btnKeywords" onclick="handleAction('keywords')">
+                        <span class="material-symbols-outlined">key</span>
+                        Keywords
+                    </button>
+                </div>
+            </section>
+
+            <!-- Q&A Card -->
+            <section class="ws-card" id="qaSection">
+                <div class="ws-card-header">
+                    <h2 class="ws-card-title">
+                        <span class="material-symbols-outlined">help</span>
+                        Ask a Question
+                    </h2>
+                </div>
+                <div class="qa-row">
+                    <input
+                        type="text"
+                        id="questionInput"
+                        class="ws-input"
+                        placeholder="Ask anything about your notes..."
+                        onkeydown="if(event.key==='Enter') handleAction('qa')"
+                    >
+                    <button class="btn-action btn-action--tertiary" id="btnAsk" onclick="handleAction('qa')">
+                        <span class="material-symbols-outlined">send</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Teacher Notes (shared notes) -->
+            {% if teacher_notes %}
+            <section class="ws-card" id="teacherNotesSection">
+                <div class="ws-card-header">
+                    <h2 class="ws-card-title">
+                        <span class="material-symbols-outlined">school</span>
+                        Teacher Notes
+                    </h2>
+                </div>
+                <div class="teacher-notes-list">
+                    {% for note in teacher_notes %}
+                    <div class="teacher-note-item" onclick="document.getElementById('noteInput').value='{{ note.content|escapejs }}'; updateCharCount();">
+                        <p class="tn-preview">{{ note.content|truncatechars:120 }}</p>
+                        <span class="tn-meta">{{ note.created_at|timesince }} ago</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+        </div>
+
+        <!-- Right Column: Results -->
+        <div class="workspace-col workspace-col--results">
+            <!-- Loading State -->
+            <div class="ws-loading" id="loadingOverlay">
+                <div class="loading-inner">
+                    <div class="loading-spinner"></div>
+                    <p class="loading-text" id="loadingText">Processing with AI agents...</p>
+                    <div class="agent-progress">
+                        <div class="agent-step" id="agentStep">
+                            <span class="step-dot"></span>
+                            <span class="step-label">Initializing...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Result -->
+            <section class="ws-card ws-result ws-result--summary" id="summaryCard" style="display:none;">
+                <div class="ws-card-header">
+                    <h2 class="ws-card-title">
+                        <span class="material-symbols-outlined">auto_awesome</span>
+                        AI Summary
+                    </h2>
+                    <button class="icon-btn" onclick="copyToClipboard('summaryResult')" title="Copy">
+                        <span class="material-symbols-outlined">content_copy</span>
+                    </button>
+                </div>
+                <div class="result-body" id="summaryResult"></div>
+            </section>
+
+            <!-- Keywords Result -->
+            <section class="ws-card ws-result ws-result--keywords" id="keywordsCard" style="display:none;">
+                <div class="ws-card-header">
+                    <h2 class="ws-card-title">
+                        <span class="material-symbols-outlined">key</span>
+                        Extracted Keywords
+                    </h2>
+                    <button class="icon-btn" onclick="copyToClipboard('keywordsResult')" title="Copy">
+                        <span class="material-symbols-outlined">content_copy</span>
+                    </button>
+                </div>
+                <div class="result-body keywords-grid" id="keywordsResult"></div>
+            </section>
+
+            <!-- Q&A Result -->
+            <section class="ws-card ws-result ws-result--qa" id="qaCard" style="display:none;">
+                <div class="ws-card-header">
+                    <h2 class="ws-card-title">
+                        <span class="material-symbols-outlined">lightbulb</span>
+                        Answer
+                    </h2>
+                    <button class="icon-btn" onclick="copyToClipboard('qaResult')" title="Copy">
+                        <span class="material-symbols-outlined">content_copy</span>
+                    </button>
+                </div>
+                <div class="result-body" id="qaResult"></div>
+            </section>
+
+            <!-- Empty State -->
+            <div class="results-empty" id="resultsEmpty">
+                <span class="material-symbols-outlined empty-icon">neurology</span>
+                <h3>Ready to analyze</h3>
+                <p>Paste your notes and click Summarize, Keywords, or ask a question to get AI-powered insights.</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="{% static 'script.js' %}"></script>
+<script>
+// Update char counter
+function updateCharCount() {
+    const len = document.getElementById('noteInput').value.length;
+    document.getElementById('charCount').textContent = len.toLocaleString() + ' chars';
+}
+
+// Hide empty state when results appear
+const origDisplay = displayResult;
+if (typeof origDisplay === 'function') {
+    // Patch to hide the empty state
+    const _origDisplayResult = displayResult;
+    displayResult = function(action, result) {
+        document.getElementById('resultsEmpty').style.display = 'none';
+        _origDisplayResult(action, result);
+    };
+}
+
+// Tab Switching logic
+function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    document.getElementById('pdfInputArea').style.display = tab === 'pdf' ? 'block' : 'none';
+    document.getElementById('urlInputArea').style.display = tab === 'url' ? 'block' : 'none';
+}
+
+// Extract text from PDF
+async function extractPdf() {
+    const fileInput = document.getElementById('pdfFileInput');
+    if (!fileInput.files.length) {
+        showToast('Please select a PDF file first', 'error');
+        return;
+    }
+    
+    document.getElementById('btnExtractPdf').textContent = 'Extracting...';
+    document.getElementById('btnExtractPdf').disabled = true;
+    
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    
+    try {
+        const response = await fetch('/api/extract/', { method: 'POST', body: formData });
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            document.getElementById('noteInput').value = data.result;
+            showToast('PDF text extracted successfully!', 'success');
+            updateCharCount();
+        } else {
+            showToast(data.result, 'error');
+        }
+    } catch (err) {
+        showToast('Failed to extract PDF', 'error');
+    } finally {
+        document.getElementById('btnExtractPdf').textContent = 'Extract from PDF';
+        document.getElementById('btnExtractPdf').disabled = false;
+    }
+}
+
+// Extract text from URL
+async function extractUrl() {
+    const urlInput = document.getElementById('urlInput').value.trim();
+    if (!urlInput) {
+        showToast('Please enter a valid URL', 'error');
+        return;
+    }
+    
+    document.getElementById('btnExtractUrl').textContent = 'Extracting...';
+    document.getElementById('btnExtractUrl').disabled = true;
+    
+    const formData = new FormData();
+    formData.append('url', urlInput);
+    
+    try {
+        const response = await fetch('/api/extract/', { method: 'POST', body: formData });
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            document.getElementById('noteInput').value = data.result;
+            showToast('Link text extracted successfully!', 'success');
+            updateCharCount();
+        } else {
+            showToast(data.result, 'error');
+        }
+    } catch (err) {
+        showToast('Failed to extract from Link', 'error');
+    } finally {
+        document.getElementById('btnExtractUrl').textContent = 'Extract from Link';
+        document.getElementById('btnExtractUrl').disabled = false;
+    }
+}
+</script>
+{% endblock %}
